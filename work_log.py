@@ -1,7 +1,8 @@
 import csv
-import task
-import task_search
 import utils
+
+from task import Task
+from task_search import TaskSearch
 
 
 class WorkLog():
@@ -27,7 +28,7 @@ class WorkLog():
             logs = []
         else:
             for log in logs:
-                self.TASKS.append(task.Task(log))
+                self.TASKS.append(Task(log))
                 self.sort_tasks()
 
     def sort_tasks(self):
@@ -50,8 +51,11 @@ class WorkLog():
         index = 0
 
         while True:
+            # Returns to main menu if search return no tasks.
+            if tasks is None:
+                break
             # If all taks are deleted a message is prompt to advice us.
-            if len(tasks) == 0:
+            elif len(tasks) == 0:
                 utils.clear_screen()
                 print("There are no more tasks to show.\n")
                 input("Press enter to return to search menu.")
@@ -136,7 +140,7 @@ class WorkLog():
         needed. It replaces the original task and then the tasks are saved
         to file. It returns the task to being able to see it on screen.
         """
-        new_task = task.Task.edit_task(entry)
+        new_task = Task.edit_task(entry)
         self.TASKS[self.TASKS.index(entry)] = new_task
         self.save_file('log.csv')
         return new_task
@@ -169,7 +173,7 @@ class WorkLog():
         its content. The tasks are sorted before being saved to file to keep
         them ordered.
         """
-        entry = task.Task.create_new_task()
+        entry = Task.create_new_task()
         self.TASKS.append(entry)
         self.sort_tasks()
         self.save_file('log.csv')
@@ -200,7 +204,7 @@ c) Quit program
                 input()
 
     def search_menu(self):
-        """Displays on screen que search menu of the application and let the
+        """Displays on screen the search menu of the application and let the
         user to choose a search method or return to main menu.
         """
         while True:
@@ -216,19 +220,19 @@ f) Return to menu
             option = input("> ")
 
             if option == 'a':
-                found = task_search.TaskSearch.search_date(self.TASKS)
+                found = TaskSearch.search_date(self.TASKS)
                 self.show_tasks(found)
             elif option == 'b':
-                found = task_search.TaskSearch.search_by_range(self.TASKS)
+                found = TaskSearch.search_by_range(self.TASKS)
                 self.show_tasks(found)
             elif option == 'c':
-                found = task_search.TaskSearch.search_time(self.TASKS)
+                found = TaskSearch.search_time(self.TASKS)
                 self.show_tasks(found)
             elif option == 'd':
-                found = task_search.TaskSearch.search_exact(self.TASKS)
+                found = TaskSearch.search_exact(self.TASKS)
                 self.show_tasks(found)
             elif option == 'e':
-                found = task_search.TaskSearch.search_regex(self.TASKS)
+                found = TaskSearch.search_regex(self.TASKS)
                 self.show_tasks(found)
             elif option == 'f':
                 break

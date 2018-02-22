@@ -1,6 +1,5 @@
 import datetime
 import re
-import sre_constants
 import utils
 
 from task import Task
@@ -129,8 +128,13 @@ class TaskSearch(Task):
             if text != '':
                 # Fills a list with the tasks found (if any)
                 for t in tasks:
-                    if text in t.title.lower() or text in t.notes.lower():
-                        found.append(t)
+                    # Checks if notes is empty
+                    if t.notes:
+                        if text in t.title.lower() or text in t.notes.lower():
+                            found.append(t)
+                    else:
+                        if text in t.title.lower():
+                            found.append(t)
 
                 if len(found) > 0:
                     return found
@@ -152,12 +156,12 @@ class TaskSearch(Task):
         # Ask the user to provide a regular expresion
         while True:
             try:
-                text = (input("Enter a regular expresion to search: "))
+                text = (input("Enter a regular expression to search: "))
                 if text == '':
                     raise ValueError
-                regex = re.compile(r'{}'.format(text))
-            except sre_constants.error:
-                print("Sorry, you must enter a valid regular expresion\n")
+                reg = re.compile(r'{}'.format(text))
+            except re.error:
+                print("Sorry, you must enter a valid regular expression\n")
             except ValueError:
                 print("Sorry, you can't leave this blank.\n")
             else:
@@ -165,12 +169,17 @@ class TaskSearch(Task):
 
         # Fills a list with the tasks found (if any)
         for task in tasks:
-            if re.search(regex, task.title) or re.search(regex, task.notes):
-                found.append(task)
+            # Checks if notes is empty
+            if task.notes:
+                if re.search(reg, task.title) or re.search(reg, task.notes):
+                    found.append(task)
+            else:
+                if re.search(reg, task.title):
+                    found.append(task)
 
         if len(found) > 0:
             return found
         else:
-            print("Sorry, we haven't found a task matching that regex.")
+            print("Sorry, no tasks match that regular expression.")
             input("\nPress enter to return to menu")
             return None
