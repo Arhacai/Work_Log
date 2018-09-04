@@ -1,39 +1,45 @@
 import csv
 import utils
 
-from task import Task
-from task_search import TaskSearch
+from task_v2 import Task, TaskSearch
 
 
-class WorkLog():
-    """WorkLog is a terminal application for logging what work someone did on a
+class WorkLog:
+    """
+    WorkLog is a terminal application for logging what work someone did on a
     certain day. It holds a list of tasks, let the user to add, edit or delete
-    any of them aswell several ways to search through the tasks. It reads and
+    any of them several ways to search through the tasks aswell. It reads and
     save all information in a csv file.
     """
-    TASKS = []
 
-    def __init__(self, file):
-        """Initialize the app by reading the csv file and adding all task to a
-        list. If there is no file, the app runs and creates it when the user
-        save an entry. When imported, the tasks are sorted by date in the list.
+    def __init__(self, *args):
         """
-        logs = []
-        try:
-            with open(file) as csvfile:
-                reader = csv.DictReader(csvfile)
-                for row in reader:
-                    logs.append(row)
-        except FileNotFoundError:
-            logs = []
-        else:
-            for log in logs:
-                self.TASKS.append(Task(log))
-                self.sort_tasks()
+        Initialize the app by reading the csv file and adding all task to a
+        list. If there is no file, the app runs with an empty task list.
+        """
+        self.TASKS = self.get_tasks(*args)
+        self.sort_tasks()
+
+    def get_tasks(self, file=None):
+        """
+        Imports a list of tasks from a csvfile if provided. It returns that
+        lists sorted by date.
+        """
+        tasks = []
+        if file:
+            try:
+                with open(file) as csvfile:
+                    reader = csv.DictReader(csvfile)
+                    for log in reader:
+                        tasks.append(Task(**log))
+            except FileNotFoundError:
+                pass
+        return tasks
 
     def sort_tasks(self):
-        """Takes the list of tasks imported from csv file and sort them by
-        date, from the oldest to the newest one.
+        """
+        Takes the list of tasks imported from csv file and sort them by date,
+        from the oldest to the newest one.
         """
         for i in range(1, len(self.TASKS)):
             j = i-1
@@ -42,6 +48,15 @@ class WorkLog():
                 self.TASKS[j+1] = self.TASKS[j]
                 j -= 1
             self.TASKS[j+1] = key
+
+    def menu_options(self):
+        options = {
+            'Previous': 'previous',
+            'Next': 'next',
+            'Edit': 'edit',
+            'Delete': 'delete',
+            'Return': 'return'
+        }
 
     def show_tasks(self, tasks):
         """Takes a list of tasks and shows them on screen one at a time. It
@@ -69,7 +84,7 @@ class WorkLog():
                     print("[E]dit, [D]elete, [R]eturn to search menu")
                     option = input("\n> ")
                     if option.upper() == 'E':
-                        tasks[index] = self.edit_task(tasks[index])
+                        self.edit_entry(tasks[index])
                     elif option.upper() == 'D':
                         if self.delete_task(tasks[index]):
                             del tasks[index]
@@ -87,7 +102,7 @@ class WorkLog():
                     if option.upper() == 'N':
                         index += 1
                     elif option.upper() == 'E':
-                        tasks[index] = self.edit_task(tasks[index])
+                        self.edit_entry(tasks[index])
                     elif option.upper() == 'D':
                         if self.delete_task(tasks[index]):
                             del tasks[index]
@@ -107,7 +122,7 @@ class WorkLog():
                     elif option.upper() == 'N':
                         index += 1
                     elif option.upper() == 'E':
-                        tasks[index] = self.edit_task(tasks[index])
+                        self.edit_entry(tasks[index])
                     elif option.upper() == 'D':
                         if self.delete_task(tasks[index]):
                             del tasks[index]
@@ -125,7 +140,7 @@ class WorkLog():
                     if option.upper() == 'P':
                         index -= 1
                     elif option.upper() == 'E':
-                        tasks[index] = self.edit_task(tasks[index])
+                        self.edit_entry(tasks[index])
                     elif option.upper() == 'D':
                         if self.delete_task(tasks[index]):
                             del tasks[index]
@@ -135,15 +150,14 @@ class WorkLog():
                     else:
                         print("Sorry, you must choose a valid option.")
 
-    def edit_task(self, entry):
-        """Edit a task by creating one new and overriding its attributed when
+    def edit_entry(self, entry):
+        """
+        Edit a task by creating one new and overriding its attributed when
         needed. It replaces the original task and then the tasks are saved
         to file. It returns the task to being able to see it on screen.
         """
-        new_task = Task.edit_task(entry)
-        self.TASKS[self.TASKS.index(entry)] = new_task
+        entry.edit()
         self.save_file('log.csv')
-        return new_task
 
     def delete_task(self, entry):
         """Let the user to delete an entry. User must confirm this action
