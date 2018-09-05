@@ -246,27 +246,45 @@ f) Return to menu
                 input()
 
 
-class TaskMenu:
-    options = {
-        'p': 'previous',
-        'n': 'next',
-        'e': 'edit',
-        'd': 'delete',
-        'r': 'return'
-    }
+class MenuOption:
+    def __init__(self, keys, option):
+        self.keys = keys
+        self.option = option
 
-    @classmethod
-    def print_options(cls, index, length=None):
-        if length is None:
-            return None
-        elif length == 0:
+    def __str__(self):
+        return "[{}]{}".format(self.keys.upper(), self.option[1:])
+
+
+class TaskMenu:
+    options = [
+        MenuOption('p', 'previous'),
+        MenuOption('n', 'next'),
+        MenuOption('e', 'edit'),
+        MenuOption('d', 'delete'),
+        MenuOption('r', 'return')
+    ]
+
+    def get_options(self, index, length):
+        if length == 0:
+            return [self.options[-1]]
+        if index == 0:
+            if length == 1:
+                return self.options[2:]
+            return self.options[1:]
+        if index == length - 1:
+            return [self.options[0]] + self.options[2:]
+        if index >= length:
+            raise IndexError("list index out of range")
+        return self.options
+
+    def print_options(self):
+        if length == 0:
             print("There are no more tasks to show.\n")
             input("Press enter to return to search menu.")
-        elif index == 0 and length == 1:
+        elif length == 1 and index == 0:
             print("[E]dit, [D]elete, [R]eturn to search menu")
-        elif index == 0:
+        elif length > 1 and index == 0:
             print("""[N]ext, [E]dit, [D]elete, [R]eturn to search menu""")
-
         elif 0 < index < length - 1:
             print("""[P]revious, [N]ext, [E]dit, [D]elete, [R]eturn to search menu""")
 
