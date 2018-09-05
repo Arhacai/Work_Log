@@ -49,15 +49,6 @@ class WorkLog:
                 j -= 1
             self.TASKS[j+1] = key
 
-    def menu_options(self):
-        options = {
-            'Previous': 'previous',
-            'Next': 'next',
-            'Edit': 'edit',
-            'Delete': 'delete',
-            'Return': 'return'
-        }
-
     def show_tasks(self, tasks):
         """Takes a list of tasks and shows them on screen one at a time. It
         also displays a set of options to page through tasks, edit and remove
@@ -253,6 +244,42 @@ f) Return to menu
             else:
                 print("Sorry, you must choose a valid option")
                 input()
+
+
+class TaskMenu:
+    options = {
+        'p': 'previous',
+        'n': 'next',
+        'e': 'edit',
+        'd': 'delete',
+        'r': 'return'
+    }
+
+    @classmethod
+    def print_options(cls, index, length=None):
+        if length is None:
+            return None
+        elif length == 0:
+            print("There are no more tasks to show.\n")
+            input("Press enter to return to search menu.")
+        elif index == 0 and length == 1:
+            print("[E]dit, [D]elete, [R]eturn to search menu")
+        elif index == 0:
+            print("""[N]ext, [E]dit, [D]elete, [R]eturn to search menu""")
+
+        elif 0 < index < length - 1:
+            print("""[P]revious, [N]ext, [E]dit, [D]elete, [R]eturn to search menu""")
+
+        elif index == length - 1:
+            print("""[P]revious, [E]dit, [D]elete, [R]eturn to search menu""")
+
+    def get_choice(self):
+        while True:
+            choice = input("\n> ")
+        while not self.options.get(choice, False):
+            print("Sorry, you must choose a valid option")
+            input()
+
 
 
 if __name__ == '__main__':
