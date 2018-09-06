@@ -17,6 +17,7 @@ class WorkLog:
         Initialize the app by reading the csv file and adding all task to a
         list. If there is no file, the app runs with an empty task list.
         """
+        self.index = 0
         self.TASKS = self.get_tasks(*args)
         self.sort_tasks()
 
@@ -54,92 +55,22 @@ class WorkLog:
         also displays a set of options to page through tasks, edit and remove
         them.
         """
-        index = 0
-
-        while True:
-            # Returns to main menu if search return no tasks.
-            if tasks is None:
+        self.index = 0
+        menu = TaskMenu(self.index, len(tasks))
+        while True and:
+            tasks[self.index].show()
+            menu.print_options()
+            choice = menu.get_choice()
+            if choice == 'return':
                 break
-            # If all taks are deleted a message is prompt to advice us.
-            elif len(tasks) == 0:
-                utils.clear_screen()
-                print("There are no more tasks to show.\n")
-                input("Press enter to return to search menu.")
-                break
-            else:
-                tasks[index].show_task()
-                print("\nResult {} of {}\n".format(index+1, len(tasks)))
+            getattr(self, choice+'_entry')(tasks[self.index])
+            menu = TaskMenu(self.index, len(tasks))
 
-                # Menu displayed if only one task is found.
-                if index == 0 and len(tasks) == 1:
-                    print("[E]dit, [D]elete, [R]eturn to search menu")
-                    option = input("\n> ")
-                    if option.upper() == 'E':
-                        self.edit_entry(tasks[index])
-                    elif option.upper() == 'D':
-                        if self.delete_task(tasks[index]):
-                            del tasks[index]
-                            index = 0
-                    elif option.upper() == 'R':
-                        break
-                    else:
-                        print("Sorry, you must choose a valid option.")
+    def next_entry(self, *args):
+        self.index += 1
 
-                # Menu displayed to the first task if there is more than one.
-                elif index == 0:
-                    print("""
-[N]ext, [E]dit, [D]elete, [R]eturn to search menu""")
-                    option = input("\n> ")
-                    if option.upper() == 'N':
-                        index += 1
-                    elif option.upper() == 'E':
-                        self.edit_entry(tasks[index])
-                    elif option.upper() == 'D':
-                        if self.delete_task(tasks[index]):
-                            del tasks[index]
-                            index = 0
-                    elif option.upper() == 'R':
-                        break
-                    else:
-                        print("Sorry, you must choose a valid option.")
-
-                # Menu displayed to any task but the first and last one.
-                elif index > 0 and index < len(tasks)-1:
-                    print("""
-[P]revious, [N]ext, [E]dit, [D]elete, [R]eturn to search menu""")
-                    option = input("\n> ")
-                    if option.upper() == 'P':
-                        index -= 1
-                    elif option.upper() == 'N':
-                        index += 1
-                    elif option.upper() == 'E':
-                        self.edit_entry(tasks[index])
-                    elif option.upper() == 'D':
-                        if self.delete_task(tasks[index]):
-                            del tasks[index]
-                            index -= 1
-                    elif option.upper() == 'R':
-                        break
-                    else:
-                        print("Sorry, you must choose a valid option.")
-
-                # Menu displayed for the last tasks if there are more than one.
-                elif index == len(tasks)-1:
-                    print("""
-[P]revious, [E]dit, [D]elete, [R]eturn to search menu""")
-                    option = input("\n> ")
-                    if option.upper() == 'P':
-                        index -= 1
-                    elif option.upper() == 'E':
-                        self.edit_entry(tasks[index])
-                    elif option.upper() == 'D':
-                        if self.delete_task(tasks[index]):
-                            del tasks[index]
-                            index -= 1
-                    elif option.upper() == 'R':
-                        break
-                    else:
-                        print("Sorry, you must choose a valid option.")
+    def previous_entry(self, *args):
+        self.index -= 1
 
     def edit_entry(self, entry):
         """
@@ -150,27 +81,28 @@ class WorkLog:
         entry.edit()
         self.save_file('log.csv')
 
-    def delete_task(self, entry):
+    def delete_entry(self, entry):
         """Let the user to delete an entry. User must confirm this action
         because it can't be undone. Once the entry is deleted, the file is
         saved with the changes made.
         """
-        answer = input("\n Do you really want to delete this task? [y/N]: ")
+        answer = input("Do you really want to delete this task? [y/N]: ")
         if answer.lower() == 'y':
             del self.TASKS[self.TASKS.index(entry)]
             self.save_file('log.csv')
-            return True
-        else:
-            return False
+            if self.index > 1:
+                self.index -= 1
+            else:
+                self.index = 0
 
     def save_file(self, file):
         """Saves the file in a csvfile."""
         with open(file, 'w') as csvfile:
-            fieldnames = ["Date", "Title", "Time", "Notes"]
+            fieldnames = ["date", "title", "time", "notes"]
             writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
             writer.writeheader()
             for entry in self.TASKS:
-                writer.writerow(entry.log)
+                writer.writerow(entry.get_log())
 
     def add_entry(self):
         """Let the user to create and save a new task. Once is created, the
@@ -247,12 +179,12 @@ f) Return to menu
 
 
 class MenuOption:
-    def __init__(self, keys, option):
-        self.keys = keys
-        self.option = option
+    def __init__(self, key, name):
+        self.key = key
+        self.name = name
 
     def __str__(self):
-        return "[{}]{}".format(self.keys.upper(), self.option[1:])
+        return "[{}]{}".format(self.key.upper(), self.name[1:])
 
 
 class TaskMenu:
@@ -263,6 +195,9 @@ class TaskMenu:
         MenuOption('d', 'delete'),
         MenuOption('r', 'return')
     ]
+
+    def __init__(self, index, length):
+        self.options = self.get_options(index, length)
 
     def get_options(self, index, length):
         if length == 0:
@@ -278,25 +213,15 @@ class TaskMenu:
         return self.options
 
     def print_options(self):
-        if length == 0:
-            print("There are no more tasks to show.\n")
-            input("Press enter to return to search menu.")
-        elif length == 1 and index == 0:
-            print("[E]dit, [D]elete, [R]eturn to search menu")
-        elif length > 1 and index == 0:
-            print("""[N]ext, [E]dit, [D]elete, [R]eturn to search menu""")
-        elif 0 < index < length - 1:
-            print("""[P]revious, [N]ext, [E]dit, [D]elete, [R]eturn to search menu""")
-
-        elif index == length - 1:
-            print("""[P]revious, [E]dit, [D]elete, [R]eturn to search menu""")
+        print(', '.join([str(option) for option in self.options]))
 
     def get_choice(self):
         while True:
-            choice = input("\n> ")
-        while not self.options.get(choice, False):
+            choice = input("> ")
+            for option in self.options:
+                if choice == option.key:
+                    return option.name
             print("Sorry, you must choose a valid option")
-            input()
 
 
 

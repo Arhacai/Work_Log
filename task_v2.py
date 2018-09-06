@@ -47,6 +47,9 @@ class Task:
         self.time = utils.get_time(self.time)
         self.notes = utils.get_notes(self.notes)
 
+    def get_log(self):
+        return self.__dict__
+
 
 class TaskSearch:
     """
