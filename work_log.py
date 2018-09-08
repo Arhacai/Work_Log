@@ -12,13 +12,13 @@ class WorkLog:
     save all information in a csv file.
     """
 
-    def __init__(self, *args):
+    def __init__(self, file):
         """
         Initialize the app by reading the csv file and adding all task to a
         list. If there is no file, the app runs with an empty task list.
         """
-        self.index = 0
-        self.TASKS = self.get_tasks(*args)
+        self.file = file
+        self.TASKS = self.get_tasks(file)
         self.sort_tasks()
 
     def get_tasks(self, file=None):
@@ -50,59 +50,39 @@ class WorkLog:
                 j -= 1
             self.TASKS[j+1] = key
 
-    def show_tasks(self, tasks):
-        """Takes a list of tasks and shows them on screen one at a time. It
-        also displays a set of options to page through tasks, edit and remove
-        them.
-        """
-        self.index = 0
-        menu = TaskMenu(self.index, len(tasks))
-        while True and:
-            tasks[self.index].show()
-            menu.print_options()
-            choice = menu.get_choice()
-            if choice == 'return':
-                break
-            getattr(self, choice+'_entry')(tasks[self.index])
-            menu = TaskMenu(self.index, len(tasks))
-
-    def next_entry(self, *args):
-        self.index += 1
-
-    def previous_entry(self, *args):
-        self.index -= 1
-
-    def edit_entry(self, entry):
+    def edit(self, index, tasks):
         """
         Edit a task by creating one new and overriding its attributed when
         needed. It replaces the original task and then the tasks are saved
         to file. It returns the task to being able to see it on screen.
         """
-        entry.edit()
-        self.save_file('log.csv')
+        tasks[index].edit()
+        self.save_file()
+        return index
 
-    def delete_entry(self, entry):
+    def delete(self, index, tasks):
         """Let the user to delete an entry. User must confirm this action
         because it can't be undone. Once the entry is deleted, the file is
         saved with the changes made.
         """
         answer = input("Do you really want to delete this task? [y/N]: ")
         if answer.lower() == 'y':
-            del self.TASKS[self.TASKS.index(entry)]
-            self.save_file('log.csv')
-            if self.index > 1:
-                self.index -= 1
-            else:
-                self.index = 0
+            del self.TASKS[self.TASKS.index(tasks[index])]
+            del tasks[index]
+            self.save_file()
+            if index > 1:
+                return index - 1
+            return 0
+        return index
 
-    def save_file(self, file):
+    def save_file(self):
         """Saves the file in a csvfile."""
-        with open(file, 'w') as csvfile:
+        with open(self.file, 'w') as csvfile:
             fieldnames = ["date", "title", "time", "notes"]
             writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
             writer.writeheader()
             for entry in self.TASKS:
-                writer.writerow(entry.get_log())
+                writer.writerow(entry.log())
 
     def add_entry(self):
         """Let the user to create and save a new task. Once is created, the
@@ -110,94 +90,123 @@ class WorkLog:
         its content. The tasks are sorted before being saved to file to keep
         them ordered.
         """
-        entry = Task.create_new_task()
+        entry = Task()
         self.TASKS.append(entry)
         self.sort_tasks()
-        self.save_file('log.csv')
-        entry.show_task()
-        input("The entry has been add. Press enter to return to the menu")
-
-    def main_menu(self):
-        """Displays on screen the main menu of the application and let the user
-        to choose an option or quit program.
-        """
-        while True:
-            utils.clear_screen()
-            print("""WORK LOG
-What would you like to do?
-a) Add new entry
-b) Search in existing entries
-c) Quit program
-""")
-            option = input("> ")
-            if option == 'a':
-                self.add_entry()
-            elif option == 'b':
-                self.search_menu()
-            elif option == 'c':
-                break
-            else:
-                print("Sorry, you must choose a valid option.")
-                input()
-
-    def search_menu(self):
-        """Displays on screen the search menu of the application and let the
-        user to choose a search method or return to main menu.
-        """
-        while True:
-            utils.clear_screen()
-            print("""Do you want to search by:
-a) Exact Date
-b) Range of Dates
-c) Time Spent
-d) Exact Search
-e) Regex Pattern
-f) Return to menu
-""")
-            option = input("> ")
-
-            if option == 'a':
-                found = TaskSearch.search_date(self.TASKS)
-                self.show_tasks(found)
-            elif option == 'b':
-                found = TaskSearch.search_by_range(self.TASKS)
-                self.show_tasks(found)
-            elif option == 'c':
-                found = TaskSearch.search_time(self.TASKS)
-                self.show_tasks(found)
-            elif option == 'd':
-                found = TaskSearch.search_exact(self.TASKS)
-                self.show_tasks(found)
-            elif option == 'e':
-                found = TaskSearch.search_regex(self.TASKS)
-                self.show_tasks(found)
-            elif option == 'f':
-                break
-            else:
-                print("Sorry, you must choose a valid option")
-                input()
+        self.save_file()
+        entry.show()
+        input("The entry has been added. Press enter to return to the menu")
 
 
 class MenuOption:
-    def __init__(self, key, name):
+    def __init__(self, key, name, obj, func, *params):
         self.key = key
         self.name = name
+        self.obj = obj
+        self.func = func
+        self.params = params
 
     def __str__(self):
-        return "[{}]{}".format(self.key.upper(), self.name[1:])
+        return "{}) {}".format(self.key, self.name)
 
 
-class TaskMenu:
-    options = [
-        MenuOption('p', 'previous'),
-        MenuOption('n', 'next'),
-        MenuOption('e', 'edit'),
-        MenuOption('d', 'delete'),
-        MenuOption('r', 'return')
-    ]
+class Menu:
+    options = []
 
-    def __init__(self, index, length):
-        self.options = self.get_options(index, length)
+    def print_title(self):
+        raise NotImplementedError()
+
+    def print_options(self):
+        for option in self.options:
+            print(option)
+
+    def print_menu(self):
+        utils.clear_screen()
+        self.print_title()
+        self.print_options()
+
+    def get_option(self):
+        while True:
+            choice = input("> ")
+            for option in self.options:
+                if choice == option.key:
+                    return option
+            print("Sorry, you must choose a valid option")
+
+    def get_function(self, option):
+        return getattr(option.obj, option.func, False)
+
+    def run(self):
+        while True:
+            self.print_menu()
+            option = self.get_option()
+            func = self.get_function(option)
+            if not func:
+                break
+            else:
+                func(*option.params)
+
+
+class MainMenu(Menu):
+
+    def __init__(self, log):
+        self.log = log
+        self.options = [
+            MenuOption('a', 'Add new entry', log, 'add_entry'),
+            MenuOption('b', 'Search in existing entries', SearchMenu(log), 'run'),
+            MenuOption('c', 'Quit program', log, 'quit'),
+        ]
+
+    def print_title(self):
+        print("WORK LOG")
+        print("What would you like to do?")
+
+
+class SearchMenu(Menu, TaskSearch):
+
+    def __init__(self, log):
+        self.log = log
+        self.options = [
+            MenuOption('a', 'Exact Date', self, 'search_date', log.TASKS),
+            MenuOption('b', 'Range of Dates', self, 'search_by_range', log.TASKS),
+            MenuOption('c', 'Time Spent', self, 'search_time', log.TASKS),
+            MenuOption('d', 'Exact Search', self, 'search_exact', log.TASKS),
+            MenuOption('e', 'Regex Pattern', self, 'search_regex', log.TASKS),
+            MenuOption('f', 'Return to menu', self, 'quit'),
+        ]
+
+    def print_title(self):
+        print("Do you want to search by:")
+
+    def run(self):
+        while True:
+            self.print_menu()
+            option = self.get_option()
+            func = self.get_function(option)
+            if not func:
+                break
+            else:
+                tasks = func(*option.params)
+                TaskMenu(self.log, 0, tasks).run()
+
+
+class TaskMenu(Menu):
+
+    def __init__(self, log, index=0, tasks=None):
+        self.log = log
+        self.index = index
+        if tasks is None:
+            self.tasks = log.TASKS
+        else:
+            self.tasks = tasks
+        self.options = [
+            MenuOption('p', '[P]revious', self, 'previous'),
+            MenuOption('n', '[N]ext', self, 'next'),
+            MenuOption('e', '[E]dit', log, 'edit', index, self.tasks),
+            MenuOption('d', '[D]elete', log, 'delete', index, self.tasks),
+            MenuOption('r', '[R]eturn', log, 'return')
+        ]
+        self.options = self.get_options(index, len(self.tasks))
 
     def get_options(self, index, length):
         if length == 0:
@@ -212,18 +221,33 @@ class TaskMenu:
             raise IndexError("list index out of range")
         return self.options
 
+    def print_title(self):
+        if self.tasks:
+            self.tasks[self.index].show()
+            print("Result {} of {}\n".format(self.index + 1, len(self.tasks)))
+        else:
+            print("There are no tasks to show.\n")
+
     def print_options(self):
-        print(', '.join([str(option) for option in self.options]))
+        print(', '.join([option.name for option in self.options]))
 
-    def get_choice(self):
+    def run(self):
         while True:
-            choice = input("> ")
-            for option in self.options:
-                if choice == option.key:
-                    return option.name
-            print("Sorry, you must choose a valid option")
+            self.print_menu()
+            option = self.get_option()
+            func = self.get_function(option)
+            if not func:
+                break
+            else:
+                self.index = func(*option.params)
+                self.__init__(self.log, self.index, self.tasks)
 
+    def previous(self):
+        return self.index - 1
+
+    def next(self):
+        return self.index + 1
 
 
 if __name__ == '__main__':
-    WorkLog('log.csv').main_menu()
+    MainMenu(WorkLog('log.csv')).run()

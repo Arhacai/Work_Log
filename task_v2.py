@@ -13,11 +13,11 @@ class Task:
     def __init__(self, **kwargs):
         """Initialize an instance of Task with needed attributes"""
         if kwargs:
-            self.title = kwargs.get('Title')
+            self.title = kwargs.get('title')
             self.date = datetime.datetime.strptime(
-                kwargs.get('Date'), '%d/%m/%Y').date()
-            self.time = kwargs.get('Time')
-            self.notes = kwargs.get('Notes')
+                kwargs.get('date'), '%Y-%m-%d').date()
+            self.time = kwargs.get('time')
+            self.notes = kwargs.get('notes')
         else:
             self.title = utils.get_title()
             self.date = utils.get_date()
@@ -29,7 +29,7 @@ class Task:
         utils.clear_screen()
         print("Date: {}".format(self.date.strftime('%d/%m/%Y')))
         print("Title: {}".format(self.title))
-        print("Time spent: {}".format(self.time))
+        print("Time spent: {} minutes".format(self.time))
         if self.notes:
             print("Notes: {}".format(self.notes))
         print()
@@ -47,7 +47,7 @@ class Task:
         self.time = utils.get_time(self.time)
         self.notes = utils.get_notes(self.notes)
 
-    def get_log(self):
+    def log(self):
         return self.__dict__
 
 
@@ -57,7 +57,8 @@ class TaskSearch:
     tasks, to return the ones that meet the requirements
     """
 
-    def search_date(self, tasks):
+    @classmethod
+    def search_date(cls, tasks):
         """Returns a list of tasks that match the exact date the user gives."""
         utils.clear_screen()
         found = []
@@ -71,7 +72,8 @@ class TaskSearch:
                 found.append(task)
         return found
 
-    def search_by_range(self, tasks):
+    @classmethod
+    def search_by_range(cls, tasks):
         """
         Returns a list of tasks that are included between the two dates
         provided by the user.
@@ -106,7 +108,8 @@ class TaskSearch:
                 found.append(task)
         return found
 
-    def search_exact(self, tasks):
+    @classmethod
+    def search_exact(cls, tasks):
         """
         Returns a list of tasks that match the same text given by the user
         both within the Title or Notes (if task have it).

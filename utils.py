@@ -88,7 +88,7 @@ def get_time(initial=None):
         except ValueError:
             print("Sorry, you must enter a valid numeric time")
         else:
-            return time
+            return str(time)
 
 
 def get_notes(initial=None):
