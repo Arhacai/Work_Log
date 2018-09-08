@@ -1,7 +1,7 @@
 import csv
 import utils
 
-from task_v2 import Task, TaskSearch
+from task import Task, TaskSearch
 
 
 class WorkLog:

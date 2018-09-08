@@ -1,10 +1,10 @@
-Date,Title,Time,Notes
-01/01/2018,New year celebration,60,New year celebration with family and friends.
-18/02/2018,Susan's birthday,120,Party at Susan's home.
-25/02/2018,Job Fair,100,Location: London
-17/03/2018,Review some projects,60,Do some work at the office.
-08/04/2018,Driving tests in Madrid,45,Tests starts in circuit 01
-15/06/2018,Party at Carol's,80,Party starts at noon.
-15/06/2018,Python exam,100,Final exam of python's courses.
-04/07/2018,Call Logan,15,Phone number: 555-458-5587
-12/11/2018,Python review,50,
+date,title,time,notes
+2018-01-01,New year celebration,60,
+2018-02-18,Susan's birthday,120,Party at Susan's home.
+2018-02-25,Job Fair,100,Location: London
+2018-03-17,Review some projects,60,Do some work at the office.
+2018-04-08,Driving tests in Madrid,45,Tests starts in circuit 01
+2018-06-15,Party at Carol's,80,Party starts at noon.
+2018-06-15,Python exam,100,Final exam of python's courses.
+2018-07-04,Call Logan,15,Phone number: 555-458-5587
+2018-11-12,Python review,50,
