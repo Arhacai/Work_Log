@@ -6,3 +6,7 @@ venv/
 
 # All possible .pyc files
 *.pyc
+
+# All coverage files
+.coverage
+htmlcov

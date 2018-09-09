@@ -13,11 +13,11 @@ class Task:
     def __init__(self, **kwargs):
         """Initialize an instance of Task with needed attributes"""
         if kwargs:
-            self.title = kwargs.get('title')
+            self.title = kwargs.get('Title')
             self.date = datetime.datetime.strptime(
-                kwargs.get('date'), '%Y-%m-%d').date()
-            self.time = kwargs.get('time')
-            self.notes = kwargs.get('notes')
+                kwargs.get('Date'), '%d/%m/%Y').date()
+            self.time = kwargs.get('Time')
+            self.notes = kwargs.get('Notes')
         else:
             self.title = utils.get_title()
             self.date = utils.get_date()
@@ -25,7 +25,7 @@ class Task:
             self.notes = utils.get_notes()
 
     def show(self):
-        """Prompts on screen the info about the task"""
+        """Prints on screen the info about the task"""
         utils.clear_screen()
         print("Date: {}".format(self.date.strftime('%d/%m/%Y')))
         print("Title: {}".format(self.title))
@@ -36,9 +36,8 @@ class Task:
 
     def edit(self):
         """
-        Let the user to edit a task by being asked to edit any of the
-        fields that set their attributes. If any field is left blank the task
-        won't change it.
+        Let the user to edit a task by being asked to edit any of their
+        attributes. If any field is left blank, then it wont be changed.
         """
         self.show()
         print("EDIT entry (Leave fields blank for no changes)")
@@ -48,13 +47,22 @@ class Task:
         self.notes = utils.get_notes(self.notes)
 
     def log(self):
-        return self.__dict__
+        """
+        Returns the task's attributes as a dict to be saved in a .csv file
+        """
+        log = {
+            'Title': self.title,
+            'Date': self.date.strftime('%d/%m/%Y'),
+            'Time': self.time,
+            'Notes': self.notes
+        }
+        return log
 
 
 class TaskSearch:
     """
     This class provides all different methods to search through a list of
-    tasks, to return the ones that meet the requirements
+    tasks and returns the ones that meet the requirements.
     """
 
     @classmethod
@@ -128,7 +136,8 @@ class TaskSearch:
 
     @classmethod
     def search_regex(cls, tasks):
-        """Returns a list of tasks that match the regular expression given by
+        """
+        Returns a list of tasks that match the regular expression given by
         the user. Only valid regex expression are allow to be used.
         """
         utils.clear_screen()
