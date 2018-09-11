@@ -85,7 +85,8 @@ class TaskSearchTests(unittest.TestCase):
 
     @mock.patch('utils.get_date_range')
     def test_search_by_range(self, fake_range):
-        fake_range.return_value = (datetime.date(2018, 1, 1), datetime.date(2019, 1, 1))
+        fake_range.return_value = (
+            datetime.date(2018, 1, 1), datetime.date(2019, 1, 1))
         result = TaskSearch.search_by_range(self.tasks)
         self.assertEqual(len(result), 1)
 
@@ -229,18 +230,10 @@ class WorkLogTests(unittest.TestCase):
         len_tasks = len(tasks)
         len_TASKS = len(self.log.TASKS)
 
-        index, entry = 0, None
-        for index, task in enumerate(self.log.TASKS):
-            if task.time == '3141592':
-                entry, index = task, index
-
-        new_index = self.log.delete_task(index, tasks)
-
-        self.assertEqual(new_index, index - 1)
+        index = self.log.delete_task(0, tasks)
+        self.assertEqual(index, 0)
         self.assertEqual(len(tasks), len_tasks - 1)
         self.assertEqual(len(self.log.TASKS), len_TASKS - 1)
-        self.assertNotIn(entry, tasks)
-        self.assertNotIn(entry, self.log.TASKS)
 
 
 ################
@@ -378,7 +371,7 @@ class TaskMenuTests(unittest.TestCase):
     def test_print_title_no_tasks(self):
         output = io.StringIO()
         sys.stdout = output
-        TaskMenu(self.log, 0,[]).print_title()
+        TaskMenu(self.log, 0, []).print_title()
         sys.stdout = sys.__stdout__
         text = "There are no tasks to show.\n\n"
         self.assertEqual(output.getvalue(), text)
@@ -407,6 +400,7 @@ class TaskMenuTests(unittest.TestCase):
         menu = TaskMenu(self.log, 5, self.tasks)
         index = menu.next_task()
         self.assertGreater(index, menu.index)
+
 
 if __name__ == '__main__':
     unittest.main()
